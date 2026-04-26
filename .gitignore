@@ -1,0 +1,113 @@
+# Strategy & planning docs — do not commit (private discussion)
+docs/
+*.md
+!README.md
+notes/
+scratch/
+private/
+research/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+credentials.json
+secrets/
+*.secret
+.anthropic_key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+.vercel/
+.npm/
+.pnpm-store/
+*.tsbuildinfo
+next-env.d.ts
+.yarn/
+yarn-error.log
+yarn-debug.log
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+*.tgz
+
+# Docker / local dev
+docker-compose.override.yml
+*.local
+
+# Data — large or reproducible from prep scripts
+data/pums/*.parquet
+data/pums/*.csv
+data/calibration/raw/
+data/cache/
+
+# Local run artifacts
+runs/
+pool.json
+*.run.json
+report-*.json
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Python tooling
+.python-version
+.ipynb_checkpoints/
+
+# Misc
+*.bak
+*.tmp
+*.temp
