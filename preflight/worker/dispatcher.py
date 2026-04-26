@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from preflight.db.session import SessionLocal
 from preflight.logging import get_logger
 from preflight.schemas.run import JobPayload, JobType
+from preflight.worker.jobs.paraphrase_gen import handle_gen_paraphrases
 from preflight.worker.jobs.persona_pool_job import handle_gen_personas
+from preflight.worker.jobs.probe_response import handle_run_probe
 from preflight.worker.queue import JobQueue
 from preflight.worker.state import set_run_status
 
@@ -25,9 +27,9 @@ async def _not_implemented(payload: JobPayload, session: AsyncSession, queue: Jo
 
 HANDLERS: dict[JobType, Handler] = {
     "gen_personas": handle_gen_personas,
-    "gen_paraphrases": _not_implemented,
+    "gen_paraphrases": handle_gen_paraphrases,
     "validate_equivalence": _not_implemented,
-    "run_probe": _not_implemented,
+    "run_probe": handle_run_probe,
     "analyze": _not_implemented,
 }
 

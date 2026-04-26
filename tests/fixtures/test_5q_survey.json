@@ -1,0 +1,59 @@
+{
+  "id": "test-5q",
+  "version": "0.1",
+  "brief": {
+    "objectives": ["measure baseline pipeline cost and timing on a small survey"],
+    "audience_criteria": "US adults 25-54",
+    "business_context": "internal smoke test"
+  },
+  "audience": {
+    "age_range": {"min": 25, "max": 54}
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "likert_5",
+      "text": "How satisfied are you with your current mobile phone?",
+      "scale_labels": [
+        "Very dissatisfied",
+        "Dissatisfied",
+        "Neutral",
+        "Satisfied",
+        "Very satisfied"
+      ]
+    },
+    {
+      "id": "Q2",
+      "type": "likert_5",
+      "text": "Obviously, you would agree that everyone deserves the best phone available, right?",
+      "scale_labels": [
+        "Strongly disagree",
+        "Disagree",
+        "Neutral",
+        "Agree",
+        "Strongly agree"
+      ]
+    },
+    {
+      "id": "Q3",
+      "type": "nps",
+      "text": "How likely are you to recommend your current phone to a friend or colleague?"
+    },
+    {
+      "id": "Q4",
+      "type": "single_choice",
+      "text": "Which of these matters most when choosing a new phone?",
+      "options": ["Battery life", "Camera quality", "Price", "Brand", "Screen size"]
+    },
+    {
+      "id": "Q5",
+      "type": "top_box",
+      "text": "Would you switch phone brands for better battery life and a better camera and a lower price?"
+    }
+  ],
+  "fielding": {
+    "panel_source": "knit_panel",
+    "target_n": 200,
+    "est_completion_minutes": 4
+  }
+}
