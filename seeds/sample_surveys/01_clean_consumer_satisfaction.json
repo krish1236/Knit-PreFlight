@@ -1,0 +1,62 @@
+{
+  "id": "sample-01-clean",
+  "version": "0.1",
+  "brief": {
+    "objectives": [
+      "measure consumer satisfaction with mobile carriers",
+      "identify segments with lowest satisfaction"
+    ],
+    "audience_criteria": "US adults 25-54 with active mobile phone plan",
+    "business_context": "quarterly tracker for a Fortune 500 mobile carrier",
+    "hypothesis": "satisfaction varies materially by carrier and plan type",
+    "scope": "national, English-only",
+    "success_criteria": [
+      "min 200 responses per carrier segment",
+      "completion under 8 minutes"
+    ]
+  },
+  "audience": {
+    "age_range": {"min": 25, "max": 54},
+    "genders": ["any"]
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "likert_5",
+      "text": "How satisfied are you with your current mobile carrier?",
+      "scale_labels": [
+        "Very dissatisfied", "Dissatisfied", "Neutral", "Satisfied", "Very satisfied"
+      ]
+    },
+    {
+      "id": "Q2",
+      "type": "likert_5",
+      "text": "How satisfied are you with your current mobile plan's value for money?",
+      "scale_labels": [
+        "Very dissatisfied", "Dissatisfied", "Neutral", "Satisfied", "Very satisfied"
+      ]
+    },
+    {
+      "id": "Q3",
+      "type": "nps",
+      "text": "How likely are you to recommend your carrier to a friend or colleague?"
+    },
+    {
+      "id": "Q4",
+      "type": "single_choice",
+      "text": "Which factor matters most when choosing a mobile carrier?",
+      "options": ["Price", "Coverage", "Customer service", "Network speed", "Phone selection"]
+    },
+    {
+      "id": "Q5",
+      "type": "likert_5",
+      "text": "How would you rate your carrier's network coverage in your area?",
+      "scale_labels": ["Very poor", "Poor", "Adequate", "Good", "Excellent"]
+    }
+  ],
+  "fielding": {
+    "panel_source": "knit_panel",
+    "target_n": 800,
+    "est_completion_minutes": 6
+  }
+}

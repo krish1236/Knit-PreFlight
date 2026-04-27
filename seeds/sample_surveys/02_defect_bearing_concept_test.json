@@ -1,0 +1,76 @@
+{
+  "id": "sample-02-defects",
+  "version": "0.1",
+  "brief": {
+    "objectives": [
+      "evaluate three new packaging concepts for an energy drink launch",
+      "identify the strongest concept by purchase intent"
+    ],
+    "audience_criteria": "US adults 18-34, drank an energy drink in the past 30 days",
+    "business_context": "concept testing for Q3 product launch",
+    "hypothesis": "Concept B will outperform on purchase intent",
+    "scope": "national",
+    "success_criteria": ["min 100 quant per concept", "clear winner emerges"]
+  },
+  "audience": {
+    "age_range": {"min": 18, "max": 34},
+    "genders": ["any"]
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "likert_5",
+      "text": "Obviously, you would agree that bold packaging is the most important factor in choosing an energy drink, right?",
+      "scale_labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"]
+    },
+    {
+      "id": "Q2",
+      "type": "likert_5",
+      "text": "How appealing is this concept and how likely are you to purchase it?",
+      "scale_labels": ["Not at all", "Slightly", "Moderately", "Very", "Extremely"]
+    },
+    {
+      "id": "Q3",
+      "type": "likert_5",
+      "text": "How appealing do you find this energy drink concept?",
+      "scale_labels": ["Not at all appealing", "Slightly", "Moderately", "Very", "Extremely appealing"]
+    },
+    {
+      "id": "Q4",
+      "type": "likert_5",
+      "text": "How much do you like this energy drink design?",
+      "scale_labels": ["Strongly dislike", "Dislike", "Neutral", "Like", "Strongly like"]
+    },
+    {
+      "id": "Q5",
+      "type": "single_choice",
+      "text": "Which of these would you say is the most important reason to switch energy drinks?",
+      "options": ["Better taste", "Better value", "Better packaging", "Better caffeine content"]
+    },
+    {
+      "id": "Q6",
+      "type": "likert_5",
+      "text": "Wouldn't you say everyone deserves a refreshing energy drink that tastes great and is affordable?",
+      "scale_labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"]
+    },
+    {
+      "id": "Q7",
+      "type": "likert_5",
+      "text": "Most people who try this energy drink love it. How would you rate it?",
+      "scale_labels": ["Hate it", "Dislike", "Neutral", "Like", "Love it"]
+    }
+  ],
+  "screener": {
+    "rules": [
+      {"q_id": "S1", "if_value_in": [0], "action": "terminate"}
+    ]
+  },
+  "quotas": [
+    {"cell": {"age_bucket": "55-64"}, "target_n": 200}
+  ],
+  "fielding": {
+    "panel_source": "knit_panel",
+    "target_n": 600,
+    "est_completion_minutes": 8
+  }
+}

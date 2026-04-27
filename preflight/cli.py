@@ -3,11 +3,13 @@
 Subcommands:
   generate-pool   Generate a persona pool to JSON (no DB required)
   spot-check      Render N personas with full prompt template for visual review
+  seed-samples    Insert sample-survey runs from seeds/ into the database
 """
 
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import sys
 from pathlib import Path
@@ -105,6 +107,21 @@ def _add_audience_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--seed", type=int, default=42)
 
 
+def cmd_seed_samples(args: argparse.Namespace) -> int:
+    from preflight.db.session import SessionLocal
+    from preflight.seeds.sample_loader import seed_samples
+
+    async def _run() -> list:
+        async with SessionLocal() as session:
+            return await seed_samples(session)
+
+    inserted = asyncio.run(_run())
+    print(f"seeded {len(inserted)} sample run(s)")
+    for run_id in inserted:
+        print(f"  - {run_id}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="preflight")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -119,6 +136,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     _add_audience_args(p_check)
     p_check.set_defaults(func=cmd_spot_check, n=5)
+
+    p_seed = sub.add_parser(
+        "seed-samples", help="Insert sample surveys from seeds/ into the runs table"
+    )
+    p_seed.set_defaults(func=cmd_seed_samples)
 
     args = parser.parse_args(argv)
     return args.func(args)  # type: ignore[no-any-return]

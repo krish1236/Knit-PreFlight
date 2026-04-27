@@ -1,0 +1,84 @@
+{
+  "id": "sample-03-mixed",
+  "version": "0.1",
+  "brief": {
+    "objectives": [
+      "track quarterly brand health metrics",
+      "compare performance against last quarter"
+    ],
+    "audience_criteria": "US adults 21-55, household income $50K+",
+    "business_context": "Q3 brand tracker for premium beverage brand",
+    "hypothesis": "Brand awareness has grown 5+ points since Q2 campaign launch",
+    "scope": "national, English-only",
+    "success_criteria": [
+      "min 800 total responses",
+      "min 100 per quota cell",
+      "completion under 12 minutes"
+    ]
+  },
+  "audience": {
+    "age_range": {"min": 21, "max": 55},
+    "income_range": {"min": 50000}
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "likert_5",
+      "text": "How familiar are you with the brand 'Pacific Pure'?",
+      "scale_labels": [
+        "Never heard of it", "Heard of it once", "Somewhat familiar", "Quite familiar", "Very familiar"
+      ]
+    },
+    {
+      "id": "Q2",
+      "type": "likert_5",
+      "text": "How positively or negatively do you view 'Pacific Pure'?",
+      "scale_labels": ["Very negative", "Negative", "Neutral", "Positive", "Very positive"]
+    },
+    {
+      "id": "Q3",
+      "type": "likert_5",
+      "text": "How much do you trust 'Pacific Pure' as a brand?",
+      "scale_labels": ["Not at all", "A little", "Somewhat", "Quite a bit", "Completely"]
+    },
+    {
+      "id": "Q4",
+      "type": "likert_5",
+      "text": "Wouldn't you agree that 'Pacific Pure' offers good value compared to similar brands?",
+      "scale_labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"]
+    },
+    {
+      "id": "Q5",
+      "type": "nps",
+      "text": "How likely are you to recommend 'Pacific Pure' to a friend or family member?"
+    },
+    {
+      "id": "Q6",
+      "type": "single_choice",
+      "text": "Which best describes your relationship with 'Pacific Pure'?",
+      "options": ["Never tried", "Tried once", "Occasional buyer", "Regular buyer", "Loyal customer"]
+    },
+    {
+      "id": "Q7",
+      "type": "likert_5",
+      "text": "How aware are you of 'Pacific Pure' advertising in the past 30 days?",
+      "scale_labels": ["Not at all", "Slightly", "Somewhat", "Quite", "Very"]
+    },
+    {
+      "id": "Q8",
+      "type": "likert_5",
+      "text": "How memorable was the 'Pacific Pure' advertising you saw?",
+      "scale_labels": ["Not at all", "Slightly", "Somewhat", "Quite", "Very"]
+    }
+  ],
+  "quotas": [
+    {"cell": {"age_bucket": "25-34"}, "target_n": 200},
+    {"cell": {"age_bucket": "35-44"}, "target_n": 200},
+    {"cell": {"age_bucket": "45-54"}, "target_n": 200}
+  ],
+  "fielding": {
+    "panel_source": "knit_panel",
+    "target_n": 800,
+    "est_completion_minutes": 10
+  }
+}
