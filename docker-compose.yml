@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: preflight
       POSTGRES_DB: preflight
     ports:
-      - "5432:5432"
+      - "55434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,7 +18,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "55435:6379"
     volumes:
       - redis_data:/data
     healthcheck:

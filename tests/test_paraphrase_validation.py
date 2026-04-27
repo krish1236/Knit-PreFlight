@@ -25,10 +25,21 @@ def test_question_hash_changes_with_text() -> None:
 
 
 def test_validate_passes_on_good_set() -> None:
+    """Construct vectors with controlled cos-sim to original (~0.90) and pairwise (~0.80)."""
     rng = np.random.default_rng(0)
     base = rng.normal(size=384)
-    vectors = [base] + [base + rng.normal(scale=0.1, size=384) for _ in range(5)]
-    matrix = _normalize(np.array(vectors))
+    base /= np.linalg.norm(base)
+
+    vectors = [base]
+    for _ in range(5):
+        noise = rng.normal(size=384)
+        noise -= noise @ base * base
+        noise /= np.linalg.norm(noise)
+        # 0.90 = sqrt(1 - sin^2); cos(theta)=0.90 means alpha=0.90, beta=sqrt(1-.81)=0.4359
+        v = 0.90 * base + 0.4359 * noise
+        v /= np.linalg.norm(v)
+        vectors.append(v)
+    matrix = np.array(vectors)
 
     with patch("preflight.worker.jobs.paraphrase_gen.embed", return_value=matrix):
         ok, reason = paraphrase_gen._validate_paraphrases(
