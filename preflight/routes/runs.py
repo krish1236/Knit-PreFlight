@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from preflight.db.models import Run
+from preflight.db.models import Report, Run
 from preflight.db.session import get_session
 from preflight.persona.pool_generator import audience_hash
 from preflight.persona.schema import ResponseStyleConfig
@@ -76,3 +76,17 @@ async def get_run(
         created_at=run.created_at.isoformat() if run.created_at else "",
         completed_at=run.completed_at.isoformat() if run.completed_at else None,
     )
+
+
+@router.get("/{run_id}/report")
+async def get_run_report(
+    run_id: uuid.UUID,
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    report = await session.get(Report, run_id)
+    if report is None:
+        raise HTTPException(
+            status_code=404,
+            detail="report not yet available — run may still be in progress",
+        )
+    return report.report_json
