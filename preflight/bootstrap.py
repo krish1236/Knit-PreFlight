@@ -90,10 +90,12 @@ async def _calibrate_if_missing() -> None:
     logger.info("bootstrap.running_calibration")
     from preflight.calibration.runner import CalibrationConfig, run_calibration
 
+    # Scope chosen for Railway's smaller-tier memory ceilings. Local dev
+    # and CI can use larger values via `preflight calibrate` directly.
     cfg = CalibrationConfig(
-        n_clean_surveys=20,
-        n_baseline_personas=300,
-        n_sub_swarm=80,
+        n_clean_surveys=6,
+        n_baseline_personas=120,
+        n_sub_swarm=30,
         seed=7,
     )
     async with SessionLocal() as session:

@@ -13,7 +13,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import desc, select
+from sqlalchemy import case, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from preflight.db.models import Report, Run
@@ -53,13 +53,29 @@ def _title_from_objective(survey_dict: dict[str, Any]) -> str:
 async def list_samples(
     session: AsyncSession = Depends(get_session),
 ) -> list[SampleListing]:
+    # Status priority: prefer the most useful row to show in the listing.
+    # A row with status='completed' is the cached report we want to surface;
+    # a row with status='failed' is the worst case (it surfaces a misleading
+    # red badge in the UI even when other duplicate rows for the same survey
+    # have already succeeded). The listing was sorting by created_at and
+    # picking up failed duplicates over earlier completed ones.
+    status_priority = case(
+        (Run.status == "completed", 0),
+        (Run.status == "stats_running", 1),
+        (Run.status == "probing", 2),
+        (Run.status == "paraphrases_ready", 3),
+        (Run.status == "personas_ready", 4),
+        (Run.status == "pending", 5),
+        (Run.status == "failed", 6),
+        else_=7,
+    )
     listings: list[SampleListing] = []
     for slug, survey_dict in load_sample_files():
         survey_id = survey_dict["id"]
         result = await session.execute(
             select(Run)
             .where(Run.survey_id == survey_id, Run.is_sample.is_(True))
-            .order_by(desc(Run.created_at))
+            .order_by(status_priority, desc(Run.completed_at), desc(Run.created_at))
             .limit(1)
         )
         run = result.scalars().first()

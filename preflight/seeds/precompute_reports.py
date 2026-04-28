@@ -247,8 +247,8 @@ async def precompute_for_run(
     session: AsyncSession,
     run: Run,
     *,
-    n_baseline: int = 600,
-    n_sub_swarm: int = 150,
+    n_baseline: int = 250,
+    n_sub_swarm: int = 80,
     seed: int = 42,
 ) -> uuid.UUID:
     """Synthesize responses for the run's survey, run analyzers, persist report.
