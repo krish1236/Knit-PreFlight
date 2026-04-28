@@ -1,24 +1,34 @@
 #!/bin/sh
 # Container entrypoint.
 #
-# 1. Apply DB migrations (idempotent — alembic checks the version table)
-# 2. If the runs / reports / calibration_runs tables are empty, run the
-#    corresponding seed step. Each step is gated independently and is a
-#    no-op when its table is already populated, so this is safe to call
-#    on every container start (Railway autoscale, restarts, etc.).
-# 3. Hand off to uvicorn via exec so signals (SIGTERM from Railway during
-#    redeploy) reach the Python process directly.
+# Order matters and was wrong before. Migrations run synchronously
+# (fast, required before any query). Bootstrap runs in the BACKGROUND
+# so uvicorn can start immediately and /health responds within seconds.
+# This prevents the Railway healthcheck loop where the container kept
+# restarting every 5 minutes because bootstrap was taking longer than
+# the healthcheck window allowed.
 #
-# The PORT env var is injected by the platform (Railway) at runtime.
-# Default to 8000 for local docker-compose where PORT is unset.
-
-set -e
+# 1. alembic upgrade head      synchronous, ~5s
+# 2. preflight bootstrap &     backgrounded, takes minutes on first run,
+#                              skips on every subsequent run; safe to
+#                              orphan because each step is idempotent
+# 3. exec uvicorn              replaces the shell process so SIGTERM
+#                              from Railway redeploys reaches Python
+#
+# Bootstrap can be disabled by setting PREFLIGHT_BOOTSTRAP=0 in the
+# environment. Useful for one-off services like the worker.
 
 echo "[entrypoint] alembic upgrade head"
 alembic upgrade head
 
-echo "[entrypoint] preflight bootstrap (gated on table emptiness)"
-preflight bootstrap || echo "[entrypoint] bootstrap step failed; continuing to start uvicorn"
+if [ "${PREFLIGHT_BOOTSTRAP:-1}" = "1" ]; then
+    echo "[entrypoint] starting bootstrap in background"
+    (
+        preflight bootstrap || echo "[entrypoint] bootstrap exited non-zero; uvicorn keeps running"
+    ) &
+else
+    echo "[entrypoint] PREFLIGHT_BOOTSTRAP=0, skipping bootstrap"
+fi
 
 echo "[entrypoint] starting uvicorn on port ${PORT:-8000}"
 exec uvicorn preflight.main:app --host 0.0.0.0 --port "${PORT:-8000}"
