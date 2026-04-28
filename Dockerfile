@@ -17,11 +17,17 @@ COPY scripts ./scripts
 COPY seeds ./seeds
 
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir .
+    pip install --no-cache-dir . && \
+    chmod +x scripts/entrypoint.sh
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-CMD ["uvicorn", "preflight.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# scripts/entrypoint.sh:
+#   1. alembic upgrade head
+#   2. preflight bootstrap   ← gated; runs seed/precompute/calibrate
+#                              ONLY for tables that are currently empty
+#   3. exec uvicorn ...
+CMD ["scripts/entrypoint.sh"]

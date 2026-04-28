@@ -6,6 +6,10 @@ Subcommands:
   seed-samples    Insert sample-survey runs from seeds/ into the database
   precompute-samples  Synthesize cached report cards for seeded samples (no LLM)
   calibrate       Run the calibration harness and persist a CalibrationRun row
+  bootstrap       Run all three above conditionally — only the steps whose
+                  tables are empty actually execute. Used by the container
+                  entrypoint on every start so a fresh deployment self-
+                  populates without manual SSH.
 """
 
 from __future__ import annotations
@@ -165,6 +169,19 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_bootstrap(args: argparse.Namespace) -> int:
+    """Run seed-samples + precompute-samples + calibrate, each gated on
+    its own emptiness check. Used by the container entrypoint script.
+    Each step is idempotent so calling this on every container start is
+    safe — only the steps whose target tables are empty will do work.
+    """
+    from preflight.bootstrap import bootstrap_if_empty
+
+    asyncio.run(bootstrap_if_empty())
+    print("bootstrap finished")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="preflight")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -201,6 +218,13 @@ def main(argv: list[str] | None = None) -> int:
     p_cal.add_argument("--out", default=None, help="optional path to write summary JSON")
     p_cal.add_argument("--dry-run", action="store_true", help="skip writing CalibrationRun")
     p_cal.set_defaults(func=cmd_calibrate)
+
+    p_boot = sub.add_parser(
+        "bootstrap",
+        help="Run seed-samples + precompute-samples + calibrate, each "
+             "gated on its own emptiness check. Idempotent.",
+    )
+    p_boot.set_defaults(func=cmd_bootstrap)
 
     args = parser.parse_args(argv)
     return args.func(args)  # type: ignore[no-any-return]
