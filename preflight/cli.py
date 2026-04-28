@@ -4,6 +4,7 @@ Subcommands:
   generate-pool   Generate a persona pool to JSON (no DB required)
   spot-check      Render N personas with full prompt template for visual review
   seed-samples    Insert sample-survey runs from seeds/ into the database
+  calibrate       Run the calibration harness and persist a CalibrationRun row
 """
 
 from __future__ import annotations
@@ -122,6 +123,32 @@ def cmd_seed_samples(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_calibrate(args: argparse.Namespace) -> int:
+    from preflight.calibration.runner import CalibrationConfig, run_calibration
+    from preflight.db.session import SessionLocal
+
+    cfg = CalibrationConfig(
+        n_clean_surveys=args.n_clean,
+        n_baseline_personas=args.n_personas,
+        n_sub_swarm=args.n_sub_swarm,
+        seed=args.seed,
+    )
+
+    async def _run() -> dict:
+        async with SessionLocal() as session:
+            results = await run_calibration(session, cfg, persist=not args.dry_run)
+            return results.to_dict()
+
+    summary = asyncio.run(_run())
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(json.dumps(summary, indent=2))
+        print(f"wrote calibration summary to {args.out}")
+    else:
+        print(json.dumps(summary, indent=2))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="preflight")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -141,6 +168,17 @@ def main(argv: list[str] | None = None) -> int:
         "seed-samples", help="Insert sample surveys from seeds/ into the runs table"
     )
     p_seed.set_defaults(func=cmd_seed_samples)
+
+    p_cal = sub.add_parser(
+        "calibrate", help="Run the calibration harness and persist a CalibrationRun"
+    )
+    p_cal.add_argument("--n-clean", type=int, default=12)
+    p_cal.add_argument("--n-personas", type=int, default=200)
+    p_cal.add_argument("--n-sub-swarm", type=int, default=60)
+    p_cal.add_argument("--seed", type=int, default=7)
+    p_cal.add_argument("--out", default=None, help="optional path to write summary JSON")
+    p_cal.add_argument("--dry-run", action="store_true", help="skip writing CalibrationRun")
+    p_cal.set_defaults(func=cmd_calibrate)
 
     args = parser.parse_args(argv)
     return args.func(args)  # type: ignore[no-any-return]
