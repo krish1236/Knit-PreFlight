@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from preflight import __version__
 from preflight.logging import configure_logging, get_logger
-from preflight.routes import health, runs, samples
+from preflight.routes import calibration, health, runs, samples
 
 
 @asynccontextmanager
@@ -38,3 +38,4 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(runs.router)
 app.include_router(samples.router)
+app.include_router(calibration.router)

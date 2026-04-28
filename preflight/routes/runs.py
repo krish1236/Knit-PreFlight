@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
 import uuid
+from collections.abc import AsyncGenerator
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from preflight.db.models import Report, Run
-from preflight.db.session import get_session
+from preflight.db.session import SessionLocal, get_session
 from preflight.persona.pool_generator import audience_hash
 from preflight.persona.schema import ResponseStyleConfig
 from preflight.schemas.run import CreateRunRequest, CreateRunResponse, RunStateView
@@ -90,3 +94,46 @@ async def get_run_report(
             detail="report not yet available — run may still be in progress",
         )
     return report.report_json
+
+
+async def _sse_events(run_id: uuid.UUID) -> AsyncGenerator[str, None]:
+    """Poll Postgres every 2s; emit `status` SSE events when the run advances.
+
+    Closes the stream when the run reaches a terminal state (completed/failed)
+    or after a hard timeout (~10 min) to prevent zombie connections.
+    """
+    last_status: str | None = None
+    deadline = asyncio.get_event_loop().time() + 600
+    yield f"event: ping\ndata: {json.dumps({'run_id': str(run_id)})}\n\n"
+
+    while asyncio.get_event_loop().time() < deadline:
+        async with SessionLocal() as session:
+            run = await session.get(Run, run_id)
+            if run is None:
+                yield f"event: error\ndata: {json.dumps({'detail': 'run not found'})}\n\n"
+                return
+            if run.status != last_status:
+                payload = {
+                    "status": run.status,
+                    "run_id": str(run_id),
+                    "completed_at": run.completed_at.isoformat() if run.completed_at else None,
+                }
+                yield f"event: status\ndata: {json.dumps(payload)}\n\n"
+                last_status = run.status
+            if run.status in ("completed", "failed"):
+                return
+        await asyncio.sleep(2.0)
+
+    yield f"event: timeout\ndata: {json.dumps({'run_id': str(run_id)})}\n\n"
+
+
+@router.get("/{run_id}/stream")
+async def stream_run(run_id: uuid.UUID) -> StreamingResponse:
+    return StreamingResponse(
+        _sse_events(run_id),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
