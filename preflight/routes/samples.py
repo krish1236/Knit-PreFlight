@@ -62,7 +62,7 @@ async def list_samples(
             .order_by(desc(Run.created_at))
             .limit(1)
         )
-        run = result.scalar_one_or_none()
+        run = result.scalars().first()
         listings.append(
             SampleListing(
                 slug=slug,

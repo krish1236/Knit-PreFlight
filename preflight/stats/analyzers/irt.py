@@ -192,6 +192,17 @@ async def analyze(
         if not converged:
             proxy = _variance_proxy(matrix[:, j])
             severity: Severity = "high" if proxy < PROXY_LOW_VARIANCE else "none"
+            if severity == "high":
+                summary = (
+                    "Responses were nearly identical across the persona pool, "
+                    "so this question barely separates anyone — it likely won't "
+                    "differentiate audience segments."
+                )
+            else:
+                summary = (
+                    "IRT 2PL did not converge on this synthetic data; using a "
+                    "variance proxy as a sanity check. Treat as informational only."
+                )
             flags.append(
                 IRTFlag(
                     question_id=question.id,
@@ -201,16 +212,30 @@ async def analyze(
                     n_personas=int((~np.isnan(matrix[:, j])).sum()),
                     severity=severity,
                     note="2PL did not converge; falling back to variance proxy",
+                    summary=summary,
                 )
             )
             continue
 
         if a < A_POOR_THRESHOLD:
             interp: str = "poor"
+            summary = (
+                f"Discrimination a={a:.2f} (poor). This question barely separates "
+                f"personas at different latent-trait levels — it likely won't "
+                f"differentiate audience segments. Consider redesigning."
+            )
         elif a < A_STRONG_THRESHOLD:
             interp = "moderate"
+            summary = (
+                f"Discrimination a={a:.2f} (moderate). The question works but "
+                f"isn't a strong segmenter."
+            )
         else:
             interp = "strong"
+            summary = (
+                f"Discrimination a={a:.2f} (strong). Useful question for "
+                f"separating audience segments."
+            )
 
         flags.append(
             IRTFlag(
@@ -220,6 +245,7 @@ async def analyze(
                 convergence_ok=True,
                 n_personas=int((~np.isnan(matrix[:, j])).sum()),
                 severity=_classify_severity(a),
+                summary=summary,
             )
         )
 

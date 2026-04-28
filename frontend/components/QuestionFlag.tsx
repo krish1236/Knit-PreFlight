@@ -36,6 +36,26 @@ export function QuestionFlag({ q }: { q: QuestionFlags }) {
 
       {expanded && (
         <div className="border-t border-[var(--color-border)] p-4 space-y-4 bg-black/20">
+          {(q.paraphrase_shift?.summary || q.irt?.summary) && (
+            <div className="rounded-md border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5 p-3 space-y-1.5">
+              {q.paraphrase_shift?.summary && (
+                <div className="text-sm leading-snug">
+                  <span className="font-semibold text-[var(--color-accent)]">
+                    Wording:{" "}
+                  </span>
+                  {q.paraphrase_shift.summary}
+                </div>
+              )}
+              {q.irt?.summary && (
+                <div className="text-sm leading-snug">
+                  <span className="font-semibold text-[var(--color-accent)]">
+                    Discrimination:{" "}
+                  </span>
+                  {q.irt.summary}
+                </div>
+              )}
+            </div>
+          )}
           {q.paraphrase_shift && q.paraphrase_shift.metric !== "skipped" && (
             <ParaphraseShiftDetail flag={q.paraphrase_shift} />
           )}

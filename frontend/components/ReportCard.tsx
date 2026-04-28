@@ -71,18 +71,23 @@ export function ReportCard({ report }: { report: ReportCardData }) {
             {report.redundancy_pairs.map((r) => (
               <div
                 key={`${r.q_id_a}-${r.q_id_b}`}
-                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-4 flex items-center justify-between gap-3"
+                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-4 space-y-2"
               >
-                <div>
-                  <div className="font-mono text-xs">
-                    {r.q_id_a} ↔ {r.q_id_b}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-mono text-xs">
+                      {r.q_id_a} ↔ {r.q_id_b}
+                    </div>
+                    {r.summary && (
+                      <div className="text-sm mt-1">{r.summary}</div>
+                    )}
                   </div>
-                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                    Pearson {r.pearson.toFixed(2)} · Spearman{" "}
-                    {r.spearman.toFixed(2)} · n={r.n_personas}
-                  </div>
+                  <SeverityBadge severity={r.severity} />
                 </div>
-                <SeverityBadge severity={r.severity} />
+                <div className="text-xs text-[var(--color-text-muted)] font-mono">
+                  Pearson {r.pearson.toFixed(2)} · Spearman{" "}
+                  {r.spearman.toFixed(2)} · n={r.n_personas}
+                </div>
               </div>
             ))}
           </div>
@@ -98,13 +103,24 @@ export function ReportCard({ report }: { report: ReportCardData }) {
             {report.screener_issues.map((s, i) => (
               <div
                 key={i}
-                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-4 flex items-center justify-between gap-3"
+                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-4 space-y-2"
               >
-                <div>
-                  <div className="font-mono text-xs uppercase">{s.type}</div>
-                  <div className="text-sm mt-1">{s.description}</div>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-mono text-xs uppercase">{s.type}</div>
+                    {s.summary ? (
+                      <div className="text-sm mt-1">{s.summary}</div>
+                    ) : (
+                      <div className="text-sm mt-1">{s.description}</div>
+                    )}
+                  </div>
+                  <SeverityBadge severity={s.severity} />
                 </div>
-                <SeverityBadge severity={s.severity} />
+                {s.summary && (
+                  <div className="text-xs text-[var(--color-text-muted)]">
+                    detail: {s.description}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -120,18 +136,23 @@ export function ReportCard({ report }: { report: ReportCardData }) {
             {report.quota_feasibility.map((q, i) => (
               <div
                 key={i}
-                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-4 flex items-center justify-between gap-3"
+                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-4 space-y-2"
               >
-                <div>
-                  <div className="font-mono text-xs">
-                    {JSON.stringify(q.cell)}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-mono text-xs">
+                      {JSON.stringify(q.cell)}
+                    </div>
+                    {q.summary && (
+                      <div className="text-sm mt-1">{q.summary}</div>
+                    )}
                   </div>
-                  <div className="text-xs text-[var(--color-text-muted)] mt-1">
-                    panel pct: {q.estimated_panel_pct.toFixed(2)}% · projected
-                    n: {q.estimated_n_at_target} of target {q.target_n}
-                  </div>
+                  <SeverityBadge severity={q.severity} />
                 </div>
-                <SeverityBadge severity={q.severity} />
+                <div className="text-xs text-[var(--color-text-muted)] font-mono">
+                  panel pct: {q.estimated_panel_pct.toFixed(2)}% · projected n:{" "}
+                  {q.estimated_n_at_target} of target {q.target_n}
+                </div>
               </div>
             ))}
           </div>

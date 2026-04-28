@@ -57,6 +57,51 @@ COHENS_D_HIGH = 0.60
 COHENS_D_MED = 0.30
 
 
+def _summarize_ordinal(
+    examples: list[ParaphraseExample], severity: Severity
+) -> str:
+    if not examples:
+        return ""
+    original = next((e for e in examples if e.paraphrase_idx == 0), None)
+    paraphrases = [e for e in examples if e.paraphrase_idx != 0]
+    if original is None or not paraphrases:
+        return ""
+
+    paraphrase_mean = sum(p.mean_response for p in paraphrases) / len(paraphrases)
+    delta = original.mean_response - paraphrase_mean
+    direction = "inflates" if delta > 0 else "deflates"
+    abs_delta = abs(delta)
+
+    if severity == "high":
+        verdict = "This question is leading and will skew your data."
+    elif severity == "medium":
+        verdict = "Wording bias is meaningful — review and likely revise."
+    elif severity == "low":
+        verdict = "Small wording effect; probably acceptable but worth a look."
+    else:
+        verdict = "Wording does not noticeably affect responses."
+
+    return (
+        f"Original wording {direction} mean response by ~{abs_delta:.2f} points "
+        f"(original μ={original.mean_response:.2f} vs neutral paraphrases "
+        f"μ={paraphrase_mean:.2f}). {verdict}"
+    )
+
+
+def _summarize_categorical(
+    examples: list[ParaphraseExample], severity: Severity, score: float
+) -> str:
+    if severity == "high":
+        verdict = "Different wordings produce substantially different choice distributions; this question is wording-sensitive."
+    elif severity == "medium":
+        verdict = "Choice distribution shifts under paraphrase; review the wording."
+    elif severity == "low":
+        verdict = "Mild distribution shift across wordings."
+    else:
+        verdict = "Choice distribution is stable across wordings."
+    return f"Jensen-Shannon divergence {score:.2f}. {verdict}"
+
+
 def _classify_severity(metric_score: float, cohens_d: float | None, *, is_js: bool) -> Severity:
     high_metric = JS_HIGH if is_js else WASSERSTEIN_HIGH
     med_metric = JS_MED if is_js else WASSERSTEIN_MED
@@ -295,6 +340,7 @@ async def analyze_question(
             n_personas=len(matched),
             severity=severity,
             examples=examples,
+            summary=_summarize_ordinal(examples, severity),
         )
 
     if question.type in SINGLE_CATEGORICAL:
@@ -326,6 +372,7 @@ async def analyze_question(
             n_personas=len(matched),
             severity=severity,
             examples=examples,
+            summary=_summarize_categorical(examples, severity, score),
         )
 
     return ParaphraseShiftFlag(

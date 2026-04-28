@@ -104,6 +104,18 @@ async def analyze(
             if severity == "none":
                 continue
 
+            direction = "the same" if pearson_r > 0 else "opposite"
+            if severity == "high":
+                verdict = (
+                    f"{qi.id} and {qj.id} effectively measure {direction} thing "
+                    f"(correlation {pearson_r:+.2f}). Drop one to save respondent "
+                    f"time and avoid double-counting in analysis."
+                )
+            else:
+                verdict = (
+                    f"{qi.id} and {qj.id} are correlated {pearson_r:+.2f}. "
+                    f"Consider whether both add unique signal."
+                )
             flags.append(
                 RedundancyFlag(
                     q_id_a=qi.id,
@@ -112,6 +124,7 @@ async def analyze(
                     spearman=spearman_r,
                     n_personas=len(paired),
                     severity=severity,
+                    summary=verdict,
                 )
             )
 

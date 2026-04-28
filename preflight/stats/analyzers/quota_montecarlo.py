@@ -106,12 +106,36 @@ def _analyze_cell(
 ) -> QuotaFeasibility:
     cell_subset = _filter_cell(audience_subset, quota.cell)
     pct = _weighted_fraction(cell_subset, audience_subset) * 100.0
+    severity = _classify(pct)
+    cell_label = ", ".join(f"{k}={v}" for k, v in quota.cell.items())
+    if severity == "high":
+        if pct == 0.0:
+            verdict = (
+                f"No audience members fit this cell ({cell_label}). The cell "
+                f"is fundamentally incompatible with your audience definition."
+            )
+        else:
+            verdict = (
+                f"Only {pct:.1f}% of your matched audience fits this cell. "
+                f"You'll burn fielding budget without filling target n={quota.target_n}."
+            )
+    elif severity == "medium":
+        verdict = (
+            f"{pct:.1f}% of your audience fits this cell — feasible but tight. "
+            f"Filling n={quota.target_n} will require oversampling."
+        )
+    else:
+        verdict = (
+            f"{pct:.1f}% of your audience fits this cell — comfortable headroom "
+            f"for n={quota.target_n}."
+        )
     return QuotaFeasibility(
         cell=quota.cell,
         target_n=quota.target_n,
         estimated_panel_pct=pct,
         estimated_n_at_target=int(pct / 100.0 * quota.target_n),
-        severity=_classify(pct),
+        severity=severity,
+        summary=verdict,
     )
 
 
@@ -129,6 +153,10 @@ def analyze(survey: Survey) -> list[QuotaFeasibility]:
                 estimated_panel_pct=0.0,
                 estimated_n_at_target=0,
                 severity="high",
+                summary=(
+                    "Audience constraints match no panel rows. Loosen the "
+                    "audience definition before fielding."
+                ),
             )
             for q in survey.quotas
         ]

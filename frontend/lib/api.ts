@@ -53,6 +53,7 @@ export interface ParaphraseShiftFlag {
   severity: Severity;
   examples: ParaphraseExample[];
   note: string | null;
+  summary: string;
 }
 
 export interface IRTFlag {
@@ -63,6 +64,7 @@ export interface IRTFlag {
   n_personas: number;
   severity: Severity;
   note: string | null;
+  summary: string;
 }
 
 export interface RedundancyFlag {
@@ -72,6 +74,7 @@ export interface RedundancyFlag {
   spearman: number;
   n_personas: number;
   severity: Severity;
+  summary: string;
 }
 
 export interface ScreenerFlag {
@@ -84,6 +87,7 @@ export interface ScreenerFlag {
   description: string;
   evidence: Record<string, unknown>;
   severity: Severity;
+  summary: string;
 }
 
 export interface QuotaFeasibility {
@@ -92,6 +96,7 @@ export interface QuotaFeasibility {
   estimated_panel_pct: number;
   estimated_n_at_target: number;
   severity: Severity;
+  summary: string;
 }
 
 export interface QuestionFlags {

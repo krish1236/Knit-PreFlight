@@ -4,6 +4,7 @@ Subcommands:
   generate-pool   Generate a persona pool to JSON (no DB required)
   spot-check      Render N personas with full prompt template for visual review
   seed-samples    Insert sample-survey runs from seeds/ into the database
+  precompute-samples  Synthesize cached report cards for seeded samples (no LLM)
   calibrate       Run the calibration harness and persist a CalibrationRun row
 """
 
@@ -123,6 +124,21 @@ def cmd_seed_samples(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_precompute_samples(args: argparse.Namespace) -> int:
+    from preflight.db.session import SessionLocal
+    from preflight.seeds.precompute_reports import precompute_all_samples
+
+    async def _run() -> list:
+        async with SessionLocal() as session:
+            return await precompute_all_samples(session)
+
+    run_ids = asyncio.run(_run())
+    print(f"precomputed report cards for {len(run_ids)} sample(s)")
+    for run_id in run_ids:
+        print(f"  - {run_id}")
+    return 0
+
+
 def cmd_calibrate(args: argparse.Namespace) -> int:
     from preflight.calibration.runner import CalibrationConfig, run_calibration
     from preflight.db.session import SessionLocal
@@ -168,6 +184,12 @@ def main(argv: list[str] | None = None) -> int:
         "seed-samples", help="Insert sample surveys from seeds/ into the runs table"
     )
     p_seed.set_defaults(func=cmd_seed_samples)
+
+    p_pre = sub.add_parser(
+        "precompute-samples",
+        help="Synthesize report cards for seeded samples (no LLM)",
+    )
+    p_pre.set_defaults(func=cmd_precompute_samples)
 
     p_cal = sub.add_parser(
         "calibrate", help="Run the calibration harness and persist a CalibrationRun"

@@ -48,6 +48,10 @@ def _detect_self_loops(graph: nx.DiGraph) -> list[ScreenerFlag]:
                     description=f"question {node} is conditional on itself",
                     evidence={"question_id": node},
                     severity="high",
+                    summary=(
+                        f"Question {node} can never be reached because it's "
+                        f"conditioned on its own answer. Remove the conditional."
+                    ),
                 )
             )
     return flags
@@ -64,6 +68,10 @@ def _detect_cycles(graph: nx.DiGraph) -> list[ScreenerFlag]:
                 description=f"cyclic conditional dependency: {' -> '.join(cycle)}",
                 evidence={"cycle": cycle},
                 severity="high",
+                summary=(
+                    f"Questions form a circular dependency ({' → '.join(cycle)}). "
+                    f"None of them can be reached. Break the cycle."
+                ),
             )
         )
     return flags
@@ -85,6 +93,10 @@ def _detect_forward_references(survey: Survey) -> list[ScreenerFlag]:
                     ),
                     evidence={"question_id": q.id, "missing_dependency": dep_id},
                     severity="high",
+                    summary=(
+                        f"{q.id} won't appear to anyone — it's conditioned on "
+                        f"{dep_id}, which doesn't exist in the survey."
+                    ),
                 )
             )
             continue
@@ -103,6 +115,11 @@ def _detect_forward_references(survey: Survey) -> list[ScreenerFlag]:
                         "dependency_position": pos[dep_id],
                     },
                     severity="high",
+                    summary=(
+                        f"{q.id} can never be answered: it depends on {dep_id}, "
+                        f"which is asked later in the survey. Reorder or remove "
+                        f"the conditional."
+                    ),
                 )
             )
     return flags
@@ -154,6 +171,10 @@ def _detect_impossible_conditionals(survey: Survey) -> list[ScreenerFlag]:
                             "value": value,
                         },
                         severity="high",
+                        summary=(
+                            f"{q.id} can never be reached because no valid response "
+                            f"to {dep.id} can satisfy the condition ({op} {value!r})."
+                        ),
                     )
                 )
     return flags
@@ -180,6 +201,11 @@ def _detect_contradicting_screener_rules(survey: Survey) -> list[ScreenerFlag]:
                             description=(
                                 f"screener on {q_id} both terminates and qualifies on "
                                 f"value(s) {sorted(overlap)}"
+                            ),
+                            summary=(
+                                f"Screener rule conflict on {q_id}: value(s) "
+                                f"{sorted(overlap)} are both terminated and qualified. "
+                                f"Pick one action per value."
                             ),
                             evidence={
                                 "question_id": q_id,

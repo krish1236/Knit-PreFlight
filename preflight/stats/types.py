@@ -30,6 +30,7 @@ class ParaphraseShiftFlag(BaseModel):
     severity: Severity
     examples: list[ParaphraseExample]
     note: str | None = None
+    summary: str = ""
 
 
 class IRTFlag(BaseModel):
@@ -42,6 +43,7 @@ class IRTFlag(BaseModel):
     n_personas: int
     severity: Severity
     note: str | None = None
+    summary: str = ""
 
 
 class RedundancyFlag(BaseModel):
@@ -53,6 +55,7 @@ class RedundancyFlag(BaseModel):
     spearman: float
     n_personas: int
     severity: Severity
+    summary: str = ""
 
 
 class ScreenerFlag(BaseModel):
@@ -68,6 +71,7 @@ class ScreenerFlag(BaseModel):
     description: str
     evidence: dict[str, Any] = Field(default_factory=dict)
     severity: Severity
+    summary: str = ""
 
 
 class QuotaFeasibility(BaseModel):
@@ -78,6 +82,7 @@ class QuotaFeasibility(BaseModel):
     estimated_panel_pct: float
     estimated_n_at_target: int
     severity: Severity
+    summary: str = ""
 
 
 class CalibrationDisclosure(BaseModel):

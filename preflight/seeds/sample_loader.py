@@ -51,9 +51,9 @@ async def seed_samples(
         survey = Survey.model_validate(survey_dict)
 
         existing = await session.execute(
-            select(Run).where(Run.survey_id == survey.id, Run.is_sample.is_(True))
+            select(Run.id).where(Run.survey_id == survey.id, Run.is_sample.is_(True))
         )
-        if existing.scalar_one_or_none() is not None:
+        if existing.first() is not None:
             logger.info("samples.already_seeded", slug=slug, survey_id=survey.id)
             continue
 
