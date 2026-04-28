@@ -44,8 +44,19 @@ stats = [
 [project.scripts]
 preflight = "preflight.cli:main"
 
-[tool.setuptools]
-packages = ["preflight"]
+[tool.setuptools.packages.find]
+# Automatic discovery so every subpackage (preflight.persona,
+# preflight.worker, preflight.routes, preflight.stats, preflight.calibration,
+# preflight.seeds, preflight.schemas, preflight.db, preflight.llm) gets
+# copied into site-packages on `pip install .`. Without this setuptools
+# only ships the top-level preflight/ files and the production import
+# fails with `ModuleNotFoundError: No module named 'preflight.persona'`.
+where = ["."]
+include = ["preflight*"]
+exclude = ["tests*", "scripts*", "seeds*", "data*", "docs*", "frontend*"]
+
+[tool.setuptools.package-data]
+"preflight.db.migrations" = ["versions/*.py", "*.mako"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
