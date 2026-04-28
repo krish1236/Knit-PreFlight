@@ -100,11 +100,40 @@ async def run_sample(
         .order_by(desc(Run.completed_at))
         .limit(1)
     )
-    cached = completed.scalar_one_or_none()
+    cached = completed.scalars().first()
     if cached is not None:
         report = await session.get(Report, cached.id)
         if report is not None:
             return RunSampleResponse(run_id=cached.id, cached=True, status=cached.status)
+
+    # No completed cache. Before creating a new row, check whether a
+    # sample run for this survey is already in flight. Without this
+    # check, every click on the sample button while the bootstrap
+    # precompute is still running creates another duplicate is_sample
+    # row, which then breaks single-row queries in precompute_all_samples
+    # on the next deploy.
+    in_flight_statuses = (
+        "pending",
+        "personas_ready",
+        "paraphrases_ready",
+        "probing",
+        "stats_running",
+    )
+    in_flight = await session.execute(
+        select(Run)
+        .where(
+            Run.survey_id == survey.id,
+            Run.is_sample.is_(True),
+            Run.status.in_(in_flight_statuses),
+        )
+        .order_by(desc(Run.created_at))
+        .limit(1)
+    )
+    pending_run = in_flight.scalars().first()
+    if pending_run is not None:
+        return RunSampleResponse(
+            run_id=pending_run.id, cached=False, status=pending_run.status
+        )
 
     h = audience_hash(survey.audience, ResponseStyleConfig(), n=1000, seed=42)
     run = Run(

@@ -329,14 +329,25 @@ async def precompute_for_run(
 
 
 async def precompute_all_samples(session: AsyncSession) -> list[uuid.UUID]:
-    """For each seeded sample run, synthesize responses and persist a completed report."""
+    """For each seeded sample run, synthesize responses and persist a completed report.
+
+    Tolerant of duplicate seed rows. Earlier deploys with the route bug
+    that created a fresh pending row on every sample-button click left
+    multiple is_sample rows per survey_id in production. We pick the
+    oldest one (the canonical seeded row) and precompute against it.
+    The duplicates stay in the database harmlessly until a manual
+    cleanup; once the route fix lands, no new duplicates are created.
+    """
     out: list[uuid.UUID] = []
     for slug, survey_dict in load_sample_files():
         survey_id = survey_dict["id"]
         result = await session.execute(
-            select(Run).where(Run.survey_id == survey_id, Run.is_sample.is_(True))
+            select(Run)
+            .where(Run.survey_id == survey_id, Run.is_sample.is_(True))
+            .order_by(Run.created_at)
+            .limit(1)
         )
-        run = result.scalar_one_or_none()
+        run = result.scalars().first()
         if run is None:
             logger.warning("samples.no_seeded_run", slug=slug, survey_id=survey_id)
             continue
