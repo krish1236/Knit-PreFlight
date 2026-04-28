@@ -15,6 +15,9 @@ export function Header() {
           <a href="/calibration" className="hover:text-[var(--color-text)]">
             Calibration
           </a>
+          <a href="/blog/wording-shift" className="hover:text-[var(--color-text)]">
+            Blog
+          </a>
         </nav>
       </div>
     </header>
