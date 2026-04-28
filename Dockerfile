@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY preflight ./preflight
 COPY alembic.ini ./
 COPY scripts ./scripts
+COPY seeds ./seeds
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
