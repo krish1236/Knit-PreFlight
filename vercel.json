@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "npm install && npm run build",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "rootDirectory": "frontend",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- frontend/ || exit 1",
+  "env": {
+    "NEXT_PUBLIC_API_BASE": "@preflight_api_base"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_API_BASE": "@preflight_api_base"
+    }
+  }
+}
