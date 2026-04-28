@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +26,20 @@ class Settings(BaseSettings):
     max_concurrent_llm_calls: int = 60
 
     log_level: str = "INFO"
+
+    @field_validator("database_url")
+    @classmethod
+    def _normalize_async_postgres(cls, v: str) -> str:
+        """Hosted Postgres providers (Railway, Heroku, Supabase, etc.) inject
+        DATABASE_URL with the `postgres://` or `postgresql://` scheme. Our
+        engine uses asyncpg and needs `postgresql+asyncpg://`. Normalize once
+        here so deploy targets don't have to know about the driver.
+        """
+        if v.startswith("postgres://"):
+            v = "postgresql://" + v[len("postgres://") :]
+        if v.startswith("postgresql://") and "+" not in v.split("://", 1)[0]:
+            v = "postgresql+asyncpg://" + v[len("postgresql://") :]
+        return v
 
 
 @lru_cache(maxsize=1)
